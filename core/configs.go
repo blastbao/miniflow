@@ -16,7 +16,8 @@ type Configs struct {
 // NewConfigs creates a new conf interface
 func NewConfigs(fp string) *Configs {
 	b := readJSONFile(fp)
-	return load(b)
+	c := load(b)
+	return check(c)
 }
 
 func readJSONFile(filePath string) []byte {
@@ -31,4 +32,14 @@ func load(data []byte) *Configs {
 	var c Configs
 	json.Unmarshal(data, &c)
 	return &c
+}
+
+func check(c *Configs) *Configs {
+	if c.Name == "" {
+		c.Name = "default"
+	}
+	if c.Parallel == 0 {
+		c.Parallel = 2
+	}
+	return c
 }

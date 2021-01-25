@@ -93,12 +93,21 @@ func (d *dag) initPQ() {
 		return
 	}
 	for _, v := range vertices {
-		task := d.meta[v]
+		task := d.getTaskMeta(v)
 		prio := d.g.GetAdjSize(v)
 		task.SetPrio(prio)
 		task.SetIndex(-1)
 		d.pq.Enqueue(task)
 	}
+}
+
+func (d *dag) getTaskMeta(v int) Task {
+	task, exists := d.meta[v]
+	if !exists {
+		log.Fatalf("task%d not exists, please check json\n", v)
+	}
+	return task
+
 }
 
 func (d *dag) hasCycle() bool {

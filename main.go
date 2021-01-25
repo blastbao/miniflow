@@ -9,7 +9,7 @@ import (
 func main() {
 
 	if len(os.Args) == 1 {
-		log.Fatal("no input file: miniflow /path/to/tasks.json")
+		log.Fatal("[usage]: ./miniflow /path/to/tasks.json")
 	}
 
 	success := make(chan int)
