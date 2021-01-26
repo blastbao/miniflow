@@ -1,5 +1,7 @@
 package ds
 
+import "fmt"
+
 // Set is a container of non duplicate items
 type Set interface {
 	Size() int
@@ -51,3 +53,5 @@ func (s *set) Del(item int) {
 	s.items = s.items[:s.size]
 	delete(s.seen, item)
 }
+
+func (s set) String() string { return fmt.Sprintf("%v", s.items) }
