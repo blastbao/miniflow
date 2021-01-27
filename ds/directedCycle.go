@@ -1,7 +1,5 @@
 package ds
 
-import "log"
-
 // DirectedCycle finds cycle in directed graph
 type DirectedCycle interface {
 	IsDAG() bool
@@ -27,7 +25,6 @@ func NewDirectedCycle(g Digraph) DirectedCycle {
 		if c.marked[v] {
 			continue
 		}
-		log.Println("testing cycle: ", v)
 		c.dfsIter(g, v)
 	}
 	return &c
@@ -57,9 +54,6 @@ func (c *directedCycle) dfsIter(G Digraph, v int) {
 	s := newStack()
 	s.Push(v)
 	for !s.Empty() && c.cycle == nil {
-		log.Print(c.marked)
-		log.Print(c.edgeTo)
-		log.Print(c.onStack)
 		w, _ := s.Peek()
 		c.marked[w] = true
 		c.onStack[w] = true
