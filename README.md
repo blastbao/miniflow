@@ -1,8 +1,8 @@
 # miniflow 
 
-dag miniflow for executing tasks.
+miniflow is a simple command line task executor.
 
-use with cron like scheduler
+It puts tasks in a dag and resolve dependencies between them.
 
 ## Features
 
