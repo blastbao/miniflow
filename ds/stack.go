@@ -13,6 +13,7 @@ type Stack interface {
 	Push(v int)
 	Pop() (int, error)
 	Peek() (int, error)
+	String() string
 }
 
 type stack struct {

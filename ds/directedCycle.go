@@ -1,5 +1,7 @@
 package ds
 
+import "log"
+
 // DirectedCycle finds cycle in directed graph
 type DirectedCycle interface {
 	IsDAG() bool
@@ -10,7 +12,7 @@ type directedCycle struct {
 	marked  map[int]bool
 	edgeTo  map[int]int
 	onStack map[int]bool
-	cycle   *stack
+	cycle   Stack
 }
 
 // NewDirectedCycle create a struct for catching cycle in directed grach
@@ -21,11 +23,12 @@ func NewDirectedCycle(g Digraph) DirectedCycle {
 		edgeTo:  make(map[int]int),
 		cycle:   nil,
 	}
-	for _, v := range g.GetV() {
+	for _, v := range g.V() {
 		if c.marked[v] {
 			continue
 		}
-		c.dfs(g, v)
+		log.Println("testing cycle: ", v)
+		c.dfsIter(g, v)
 	}
 	return &c
 }
@@ -36,7 +39,7 @@ func (c *directedCycle) GetCycle() string { return c.cycle.String() }
 func (c *directedCycle) dfs(G Digraph, v int) {
 	c.marked[v] = true
 	c.onStack[v] = true
-	for _, w := range G.GetAdj(v) {
+	for _, w := range G.Children(v) {
 		if c.cycle != nil {
 			return
 		}
@@ -50,12 +53,39 @@ func (c *directedCycle) dfs(G Digraph, v int) {
 	c.onStack[v] = false
 }
 
-func (c *directedCycle) catchCycle(v, w int) *stack {
+func (c *directedCycle) dfsIter(G Digraph, v int) {
+	s := newStack()
+	s.Push(v)
+	for !s.Empty() && c.cycle == nil {
+		log.Print(c.marked)
+		log.Print(c.edgeTo)
+		log.Print(c.onStack)
+		w, _ := s.Peek()
+		c.marked[w] = true
+		c.onStack[w] = true
+		i := 0
+		for _, x := range G.Children(w) {
+			if !c.marked[x] {
+				c.edgeTo[x] = w
+				s.Push(x)
+				i++
+			} else if c.onStack[x] {
+				c.cycle = c.catchCycle(w, x)
+			}
+		}
+		if i == 0 {
+			x, _ := s.Pop()
+			c.onStack[x] = false
+		}
+	}
+}
+
+func (c *directedCycle) catchCycle(v, w int) Stack {
 	cycle := newStack()
 	for x := v; x != w; x = c.edgeTo[x] {
-		cycle.push(x)
+		cycle.Push(x)
 	}
-	cycle.push(w)
-	cycle.push(v)
+	cycle.Push(w)
+	cycle.Push(v)
 	return cycle
 }
