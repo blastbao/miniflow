@@ -49,8 +49,15 @@ func (s *set) Del(item int) {
 		return
 	}
 	s.size--
-	s.items[s.seen[item]] = s.items[s.size]
+	index := s.seen[item]
+	last := s.items[s.size]
+	// delete from items
+	s.items[index] = last
+	// update last item index
+	s.seen[last] = index
+	s.items[s.size] = 0
 	s.items = s.items[:s.size]
+	// delete from seen
 	delete(s.seen, item)
 }
 
