@@ -14,7 +14,6 @@ type DAG interface {
 type dag struct {
 	name    string
 	g       ds.Digraph
-	rg      ds.Digraph
 	pq      ds.MinPQ
 	meta    map[int]Task
 	maxFlow int
@@ -31,7 +30,6 @@ func NewDAG(c *Configs, success <-chan int, fail <-chan int) DAG {
 	d := dag{
 		name:    flowName,
 		g:       g,
-		rg:      g.Reverse(),
 		pq:      ds.NewMinPQ(),
 		meta:    meta,
 		maxFlow: c.Parallel,
@@ -49,12 +47,12 @@ func (d *dag) Produce() <-chan Task { return d.pipeOut }
 func (d *dag) Start() {
 	log.Print("miniflow start")
 	log.Print("name: ", d.name)
-	log.Print("size: ", d.g.GetVSize())
+	log.Print("size: ", d.g.Size())
 	if d.hasCycle() {
 		return
 	}
 	d.initPQ()
-	d.getRoots()
+	d.getSources()
 	for d.hasTasks() {
 
 		next, pipeOut := d.switchPipeOut()
@@ -67,7 +65,7 @@ func (d *dag) Start() {
 		case id := <-d.success:
 			d.settle(id)
 			d.curFlow--
-			d.getRoots()
+			d.getSources()
 
 		case pipeOut <- next:
 			d.roots = d.roots[1:]
@@ -88,13 +86,13 @@ func initGraph(c *Configs) (string, ds.Digraph, map[int]Task) {
 
 func (d *dag) initPQ() {
 	log.Print("dag confirmed, init minPQ")
-	vertices := d.g.GetV()
+	vertices := d.g.V()
 	if len(vertices) == 0 {
 		return
 	}
 	for _, v := range vertices {
 		task := d.getTaskMeta(v)
-		prio := d.g.GetAdjSize(v)
+		prio := d.g.Outdegree(v)
 		task.SetPrio(prio)
 		task.SetIndex(-1)
 		d.pq.Enqueue(task)
@@ -119,7 +117,7 @@ func (d *dag) hasCycle() bool {
 	return !c.IsDAG()
 }
 
-func (d *dag) hasTasks() bool { return d.g.GetVSize() > 0 }
+func (d *dag) hasTasks() bool { return d.g.Size() > 0 }
 
 func (d *dag) switchPipeOut() (Task, chan Task) {
 	var next Task
@@ -131,7 +129,7 @@ func (d *dag) switchPipeOut() (Task, chan Task) {
 	return next, pipeOut
 }
 
-func (d *dag) getRoots() {
+func (d *dag) getSources() {
 	for {
 		if d.pq.IsEmpty() || d.pq.GetMin().GetPrio() > 0 {
 			break
@@ -142,53 +140,33 @@ func (d *dag) getRoots() {
 }
 
 func (d *dag) remove(id int) {
-	topo := ds.NewTopo(d.rg, id)
+	topo := ds.NewTopo(d.g, d.g.Parents, id)
 	downstream := topo.GetTopoOrder()
 	log.Printf("task%d downstream: %v\n", id, downstream[1:])
 	postOrder := topo.GetPostOrder()
 	for _, id := range postOrder {
 		log.Printf("task%d removed\n", id)
 		task := d.meta[id]
-		d.relaxDownstream(id)
 		d.pq.Remove(task.GetIndex())
 		d.g.DelV(id)
 	}
 }
 
-func (d *dag) relaxDownstream(downstreamID int) {
-	d.rg.DelV(downstreamID)
-	upstream := d.g.GetAdj(downstreamID)
-	if len(upstream) == 0 {
-		return
-	}
-	for _, id := range upstream {
-		d.rg.DelEdge(id, downstreamID)
-	}
-}
-
 func (d *dag) settle(id int) {
 	log.Printf("task%d done\n", id)
-	// update g
 	d.relaxUpstream(id)
 	d.g.DelV(id)
-	// update rg
-	d.rg.DelV(id)
 }
 
 func (d *dag) relaxUpstream(upstreamID int) {
-	downstream := d.rg.GetAdj(upstreamID)
-	if len(downstream) == 0 {
+	if d.g.Indegree(upstreamID) == 0 {
 		return
 	}
+	downstream := d.g.Parents(upstreamID)
 	for _, id := range downstream {
-		d.g.DelEdge(id, upstreamID)
-		d.updatePQTaskPrio(id)
+		task := d.meta[id]
+		idx := task.GetIndex()
+		prio := d.g.Outdegree(id) - 1
+		d.pq.Update(idx, prio)
 	}
-}
-
-func (d *dag) updatePQTaskPrio(id int) {
-	task := d.meta[id]
-	idx := task.GetIndex()
-	prio := d.g.GetAdjSize(id)
-	d.pq.Update(idx, prio)
 }
