@@ -9,18 +9,22 @@ func TestTopoOrder(t *testing.T) {
 	to := []int{1, 6, 5, 4, 9, 4, 5, 0, 3, 7, 6, 10, 11, 12, 12}
 	edgeSize := len(fm)
 
-	g := NewDigraph()
+	g := NewDigraph(13)
 	for i := 0; i < edgeSize; i++ {
 		g.AddEdge(fm[i], to[i])
 	}
 
-	topo0 := NewTopo(g, 5)
+	topoIn := NewTopo(g, g.Parents, 5)
+	t.Log("topo indegree order")
+	t.Log("topo: ", topoIn.GetPostOrder())
+	t.Log("topo: ", topoIn.GetTopoOrder())
 
-	t.Log("graph")
-	t.Log("topo: ", topo0.GetTopoOrder())
-
-	t.Log("reverse graph")
-	rg := g.Reverse()
-	dfo1 := NewTopo(rg, 5)
-	t.Log("topo: ", dfo1.GetTopoOrder())
+	topoOut := NewTopo(g, g.Children, 5)
+	t.Log("topo outdegree order")
+	t.Log("topo: ", topoOut.GetPostOrder())
+	t.Log("topo: ", topoOut.GetTopoOrder())
+	//t.Log("reverse graph")
+	//rg := g.Reverse()
+	//dfo1 := NewTopo(rg, 5)
+	//t.Log("topo: ", dfo1.GetTopoOrder())
 }

@@ -6,26 +6,35 @@ import (
 	"strings"
 )
 
+// Stack returns items in filo order
+type Stack interface {
+	Empty() bool
+	Size() int
+	Push(v int)
+	Pop() (int, error)
+	Peek() (int, error)
+}
+
 type stack struct {
 	first *node
 	size  int
 }
 
-func newStack() *stack {
+func newStack() Stack {
 	s := stack{nil, 0}
 	return &s
 }
 
-func (s *stack) isEmpty() bool { return s.first == nil }
-func (s *stack) getSize() int  { return s.size }
+func (s *stack) Empty() bool { return s.first == nil }
+func (s *stack) Size() int   { return s.size }
 
-func (s *stack) push(v int) {
+func (s *stack) Push(v int) {
 	oldFirst := s.first
 	s.first = newNode(v, oldFirst)
 	s.size++
 }
 
-func (s *stack) pop() (int, error) {
+func (s *stack) Pop() (int, error) {
 	if s.first == nil {
 		return -1, errors.New("stack is empty")
 	}
@@ -33,6 +42,13 @@ func (s *stack) pop() (int, error) {
 	s.first = s.first.next
 	s.size--
 	return item, nil
+}
+
+func (s *stack) Peek() (int, error) {
+	if s.first == nil {
+		return -1, errors.New("stack is empty")
+	}
+	return s.first.item, nil
 }
 
 func (s *stack) String() string {

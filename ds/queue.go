@@ -6,13 +6,21 @@ import (
 	"strings"
 )
 
+// Queue returns items in fifo ordering
+type Queue interface {
+	Empty() bool
+	Size() int
+	Enqueue(v int)
+	Dequeue() (int, error)
+}
+
 type queue struct {
 	first *node
 	last  *node
 	size  int
 }
 
-func newQueue() *queue {
+func newQueue() Queue {
 	return &queue{
 		first: nil,
 		last:  nil,
@@ -20,10 +28,10 @@ func newQueue() *queue {
 	}
 }
 
-func (q *queue) isEmpty() bool { return q.size == 0 }
-func (q *queue) getSize() int  { return q.size }
+func (q *queue) Empty() bool { return q.size == 0 }
+func (q *queue) Size() int   { return q.size }
 
-func (q *queue) enqueue(v int) {
+func (q *queue) Enqueue(v int) {
 	oldLast := q.last
 	q.last = newNode(v, nil)
 	if q.first == nil {
@@ -34,7 +42,7 @@ func (q *queue) enqueue(v int) {
 	q.size++
 }
 
-func (q *queue) dequeue() (int, error) {
+func (q *queue) Dequeue() (int, error) {
 	if q.first == nil {
 		return -1, errors.New("queue is empty")
 	}
