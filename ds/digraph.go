@@ -29,11 +29,11 @@ type digraph struct {
 }
 
 // NewDigraph create a new directed graph
-func NewDigraph(size int) Digraph {
+func NewDigraph() Digraph {
 	return &digraph{
 		size:     0,
-		vertices: make([]int, size),
-		adj:      make(adj, size),
+		vertices: nil,
+		adj:      make(adj),
 	}
 }
 
@@ -129,7 +129,9 @@ func (g *digraph) DelEdge(v, w int) error {
 
 func (g *digraph) delVertex(index int) {
 	g.size--
-	g.vertices[index] = g.vertices[g.size]
+	last := g.vertices[g.size]
+	g.vertices[index] = last
+	g.adj[last].SetIndex(index)
 	g.vertices[g.size] = 0
 	g.vertices = g.vertices[:g.size]
 }

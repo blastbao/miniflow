@@ -6,6 +6,7 @@ type Vertex interface {
 	Outdegree() int
 	IsSource() bool
 	Index() int
+	SetIndex(i int)
 	Parents() []int
 	Children() []int
 	AddParent(w int)
@@ -32,6 +33,7 @@ func (vtx *vertex) Indegree() int   { return vtx.indegree.Size() }
 func (vtx *vertex) Outdegree() int  { return vtx.outdegree.Size() }
 func (vtx *vertex) IsSource() bool  { return vtx.indegree.IsEmpty() }
 func (vtx *vertex) Index() int      { return vtx.index }
+func (vtx *vertex) SetIndex(i int)  { vtx.index = i }
 func (vtx *vertex) Parents() []int  { return vtx.indegree.Items() }
 func (vtx *vertex) Children() []int { return vtx.outdegree.Items() }
 
