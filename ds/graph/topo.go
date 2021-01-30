@@ -1,4 +1,8 @@
-package ds
+package graph
+
+import (
+	"miniflow/ds/basics"
+)
 
 type order func(v int) []int
 
@@ -10,44 +14,23 @@ type Topo interface {
 
 type topo struct {
 	marked      map[int]bool
-	reversePost Stack
-	post        Queue
+	reversePost basics.Stack
+	post        basics.Queue
 }
 
 // NewTopo creates new Topo interface
 func NewTopo(g Digraph, di order, v int) Topo {
 	t := topo{
 		marked:      make(map[int]bool),
-		reversePost: newStack(),
-		post:        newQueue(),
+		reversePost: basics.NewStack(),
+		post:        basics.NewQueue(),
 	}
 	t.dfsIter(g, di, v)
 	return &t
 }
 
-func (t *topo) GetTopoOrder() []int {
-	var order []int
-	for t.reversePost.Size() > 0 {
-		v, err := t.reversePost.Pop()
-		if err != nil {
-			return nil
-		}
-		order = append(order, v)
-	}
-	return order
-}
-
-func (t *topo) GetPostOrder() []int {
-	var order []int
-	for !t.post.Empty() {
-		v, err := t.post.Dequeue()
-		if err != nil {
-			return nil
-		}
-		order = append(order, v)
-	}
-	return order
-}
+func (t *topo) GetTopoOrder() []int { return t.reversePost.Items() }
+func (t *topo) GetPostOrder() []int { return t.post.Items() }
 
 func (t *topo) dfs(G Digraph, di order, v int) {
 	t.marked[v] = true
@@ -62,7 +45,7 @@ func (t *topo) dfs(G Digraph, di order, v int) {
 }
 
 func (t *topo) dfsIter(G Digraph, di order, v int) {
-	s := newStack()
+	s := basics.NewStack()
 	s.Push(v)
 	for !s.Empty() {
 		w, _ := s.Peek()

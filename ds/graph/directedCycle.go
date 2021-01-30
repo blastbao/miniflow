@@ -1,4 +1,6 @@
-package ds
+package graph
+
+import "miniflow/ds/basics"
 
 // DirectedCycle finds cycle in directed graph
 type DirectedCycle interface {
@@ -10,7 +12,7 @@ type directedCycle struct {
 	marked  map[int]bool
 	edgeTo  map[int]int
 	onStack map[int]bool
-	cycle   Stack
+	cycle   basics.Stack
 }
 
 // NewDirectedCycle create a struct for catching cycle in directed grach
@@ -51,7 +53,7 @@ func (c *directedCycle) dfs(G Digraph, v int) {
 }
 
 func (c *directedCycle) dfsIter(G Digraph, v int) {
-	s := newStack()
+	s := basics.NewStack()
 	s.Push(v)
 	for !s.Empty() && c.cycle == nil {
 		w, _ := s.Peek()
@@ -74,8 +76,8 @@ func (c *directedCycle) dfsIter(G Digraph, v int) {
 	}
 }
 
-func (c *directedCycle) catchCycle(v, w int) Stack {
-	cycle := newStack()
+func (c *directedCycle) catchCycle(v, w int) basics.Stack {
+	cycle := basics.NewStack()
 	for x := v; x != w; x = c.edgeTo[x] {
 		cycle.Push(x)
 	}

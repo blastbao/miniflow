@@ -1,7 +1,6 @@
-package ds
+package basics
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -11,8 +10,9 @@ type Stack interface {
 	Empty() bool
 	Size() int
 	Push(v int)
-	Pop() (int, error)
-	Peek() (int, error)
+	Pop() (int, bool)
+	Peek() (int, bool)
+	Items() []int
 	String() string
 }
 
@@ -21,7 +21,8 @@ type stack struct {
 	size  int
 }
 
-func newStack() Stack {
+// NewStack creates a stack
+func NewStack() Stack {
 	s := stack{nil, 0}
 	return &s
 }
@@ -35,21 +36,34 @@ func (s *stack) Push(v int) {
 	s.size++
 }
 
-func (s *stack) Pop() (int, error) {
+func (s *stack) Pop() (int, bool) {
 	if s.first == nil {
-		return -1, errors.New("stack is empty")
+		return 0, false
 	}
 	item := s.first.item
 	s.first = s.first.next
 	s.size--
-	return item, nil
+	return item, true
 }
 
-func (s *stack) Peek() (int, error) {
+func (s *stack) Peek() (int, bool) {
 	if s.first == nil {
-		return -1, errors.New("stack is empty")
+		return 0, false
 	}
-	return s.first.item, nil
+	return s.first.item, true
+}
+
+func (s *stack) Items() []int {
+	if s.Empty() {
+		return nil
+	}
+	items := make([]int, s.size, s.size)
+	cur := s.first
+	for i := 0; i < s.size; i++ {
+		items[i] = cur.item
+		cur = cur.next
+	}
+	return items
 }
 
 func (s *stack) String() string {
@@ -57,9 +71,8 @@ func (s *stack) String() string {
 		return ""
 	}
 	var str strings.Builder
-	str.Grow(s.size * 4)
 	for x := s.first; x != nil; x = x.next {
-		fmt.Fprintf(&str, "%d ", x.item)
+		fmt.Fprintf(&str, "%d->", x.item)
 	}
-	return str.String()[:str.Len()-1]
+	return str.String()[:str.Len()-2]
 }

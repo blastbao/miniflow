@@ -1,17 +1,12 @@
-package ds
-
-import (
-	"errors"
-	"fmt"
-	"strings"
-)
+package basics
 
 // Queue returns items in fifo ordering
 type Queue interface {
 	Empty() bool
 	Size() int
+	Items() []int
 	Enqueue(v int)
-	Dequeue() (int, error)
+	Dequeue() (int, bool)
 }
 
 type queue struct {
@@ -20,7 +15,8 @@ type queue struct {
 	size  int
 }
 
-func newQueue() Queue {
+// NewQueue creates a queue
+func NewQueue() Queue {
 	return &queue{
 		first: nil,
 		last:  nil,
@@ -30,6 +26,19 @@ func newQueue() Queue {
 
 func (q *queue) Empty() bool { return q.size == 0 }
 func (q *queue) Size() int   { return q.size }
+
+func (q *queue) Items() []int {
+	if q.Empty() {
+		return nil
+	}
+	items := make([]int, q.size, q.size)
+	cur := q.first
+	for i := 0; i < q.size; i++ {
+		items[i] = cur.item
+		cur = cur.next
+	}
+	return items
+}
 
 func (q *queue) Enqueue(v int) {
 	oldLast := q.last
@@ -42,9 +51,9 @@ func (q *queue) Enqueue(v int) {
 	q.size++
 }
 
-func (q *queue) Dequeue() (int, error) {
+func (q *queue) Dequeue() (int, bool) {
 	if q.first == nil {
-		return -1, errors.New("queue is empty")
+		return 0, false
 	}
 	item := q.first.item
 	q.first = q.first.next
@@ -52,16 +61,5 @@ func (q *queue) Dequeue() (int, error) {
 		q.last = nil
 	}
 	q.size--
-	return item, nil
-}
-func (q *queue) String() string {
-	if q.first == nil {
-		return ""
-	}
-	var str strings.Builder
-	str.Grow(q.size * 4)
-	for x := q.first; x != nil; x = x.next {
-		fmt.Fprintf(&str, "%d ", x.item)
-	}
-	return str.String()[:str.Len()-1]
+	return item, true
 }
