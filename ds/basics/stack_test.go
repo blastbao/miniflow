@@ -1,13 +1,14 @@
-package ds
+package basics
 
 import (
 	"testing"
 )
 
 func TestStack(t *testing.T) {
-	s := newStack()
+	testSize := 1000000
+	s := NewStack()
 	var want, size int
-	for i := 0; i <= 10; i++ {
+	for i := 0; i <= testSize; i++ {
 		want, size = i, s.Size()
 		if want != size {
 			t.Fatalf("want: %d, actual: %d\n", want, size)
@@ -15,18 +16,18 @@ func TestStack(t *testing.T) {
 		s.Push(i)
 	}
 
-	for j := 10; j >= 0; j-- {
-		item, err := s.Pop()
-		if err != nil {
-			t.Fatalf(err.Error())
+	for j := testSize; j >= 0; j-- {
+		item, ok := s.Pop()
+		if ok != true {
+			t.Fatalf("pop failed")
 		}
 		if item != j {
 			t.Fatalf("want: %d, actual: %d\n", j, item)
 		}
 	}
 
-	_, err := s.Pop()
-	if err == nil {
-		t.Fatalf("want: err(stack empty), actual: %v", err)
+	_, ok := s.Pop()
+	if ok == true {
+		t.Fatalf("want: false, actual: %t", ok)
 	}
 }

@@ -1,8 +1,9 @@
-package ds
+package graph
 
 import (
 	"errors"
 	"fmt"
+	"miniflow/ds/basics"
 )
 
 // Digraph provides some directed graph api
@@ -23,16 +24,14 @@ type Digraph interface {
 type adj map[int]Vertex
 
 type digraph struct {
-	size     int
-	vertices []int
+	vertices basics.ArrayList
 	adj      adj
 }
 
 // NewDigraph create a new directed graph
 func NewDigraph() Digraph {
 	return &digraph{
-		size:     0,
-		vertices: nil,
+		vertices: basics.NewArrayList(),
 		adj:      make(adj),
 	}
 }
@@ -45,10 +44,10 @@ func (g *digraph) Index(v int) int {
 }
 
 // GetVSize return number of vertices
-func (g *digraph) Size() int { return g.size }
+func (g *digraph) Size() int { return g.vertices.Size() }
 
 // GetV return vertices of graph
-func (g *digraph) V() []int { return g.vertices }
+func (g *digraph) V() []int { return g.vertices.Items() }
 
 // Parents return parents of v
 func (g *digraph) Parents(v int) []int {
@@ -128,12 +127,13 @@ func (g *digraph) DelEdge(v, w int) error {
 }
 
 func (g *digraph) delVertex(index int) {
-	g.size--
-	last := g.vertices[g.size]
-	g.vertices[index] = last
+	lastIdx := g.vertices.Size() - 1
+	last, ok := g.vertices.Get(lastIdx)
+	if !ok {
+		return
+	}
+	g.vertices.Del(index)
 	g.adj[last].SetIndex(index)
-	g.vertices[g.size] = 0
-	g.vertices = g.vertices[:g.size]
 }
 
 func (g *digraph) delParent(from, to int) error {
@@ -158,9 +158,8 @@ func (g *digraph) addV(v int) {
 	if _, exists := g.adj[v]; exists {
 		return
 	}
-	g.adj[v] = newVertex(g.size)
-	g.vertices = append(g.vertices, v)
-	g.size++
+	g.adj[v] = newVertex(g.Size())
+	g.vertices.Add(v)
 }
 
 func (g *digraph) getAdj(v int) (Vertex, error) {

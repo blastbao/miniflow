@@ -7,10 +7,10 @@ type addV func(id int)
 type Task interface {
 	GetID() int
 	GetCmd() string
-	GetPrio() int
-	GetIndex() int
-	SetPrio(n int)
-	SetIndex(n int)
+	HeapKey() int
+	HeapIndex() int
+	SetHeapKey(k int)
+	SetHeapIndex(i int)
 }
 
 // Item is a vertex in a dag
@@ -29,17 +29,17 @@ func (it *Item) GetID() int { return it.ID }
 // GetCmd returns item's command
 func (it *Item) GetCmd() string { return it.Cmd }
 
-// GetPrio return item's priority
-func (it *Item) GetPrio() int { return it.priority }
+// HeapKey return item's priority
+func (it *Item) HeapKey() int { return it.priority }
 
-// GetIndex return item's priority index
-func (it *Item) GetIndex() int { return it.index }
+// HeapIndex return item's priority index
+func (it *Item) HeapIndex() int { return it.index }
 
-// SetPrio update item's priority
-func (it *Item) SetPrio(n int) { it.priority = n }
+// SetHeapKey update item's priority
+func (it *Item) SetHeapKey(k int) { it.priority = k }
 
-// SetIndex update item's index in priority queue
-func (it *Item) SetIndex(n int) { it.index = n }
+// SetHeapIndex update item's index in priority queue
+func (it *Item) SetHeapIndex(i int) { it.index = i }
 
 func (it *Item) hasUpstream() bool   { return len(it.Upstream) > 0 }
 func (it *Item) hasDownstream() bool { return len(it.Downstream) > 0 }
@@ -48,6 +48,8 @@ func (it *Item) process(v addV, e addEdge) {
 	v(it.ID)
 	it.processUpstream(e)
 	it.processDownstream(e)
+	it.Upstream = nil
+	it.Downstream = nil
 }
 
 func (it *Item) processUpstream(e addEdge) {

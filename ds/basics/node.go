@@ -1,4 +1,4 @@
-package ds
+package basics
 
 type node struct {
 	item int

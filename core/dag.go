@@ -2,7 +2,9 @@ package core
 
 import (
 	"log"
-	"miniflow/ds"
+	"miniflow/ds/basics"
+	"miniflow/ds/graph"
+	"miniflow/ds/tree"
 )
 
 // DAG for tasks
@@ -13,12 +15,12 @@ type DAG interface {
 
 type dag struct {
 	name    string
-	g       ds.Digraph
-	pq      ds.MinPQ
+	g       graph.Digraph
+	pq      tree.MinPQ
 	meta    map[int]Task
 	maxFlow int
 	curFlow int
-	roots   []int
+	roots   basics.ArrayList
 	pipeOut chan Task
 	success <-chan int
 	fail    <-chan int
@@ -26,15 +28,15 @@ type dag struct {
 
 // NewDAG create new dag
 func NewDAG(c *Configs, success <-chan int, fail <-chan int) DAG {
-	flowName, g, meta := initGraph(c)
+	g, meta := initGraph(c)
 	d := dag{
-		name:    flowName,
+		name:    c.Name,
 		g:       g,
-		pq:      ds.NewMinPQ(),
+		pq:      tree.NewMinPQ(),
 		meta:    meta,
 		maxFlow: c.Parallel,
 		curFlow: 0,
-		roots:   nil,
+		roots:   basics.NewArrayList(),
 		pipeOut: make(chan Task),
 		success: success,
 		fail:    fail,
@@ -68,20 +70,20 @@ func (d *dag) Start() {
 			d.getSources()
 
 		case pipeOut <- next:
-			d.roots = d.roots[1:]
+			d.roots.Del(0)
 			d.curFlow++
 		}
 	}
 }
 
-func initGraph(c *Configs) (string, ds.Digraph, map[int]Task) {
-	g := ds.NewDigraph()
+func initGraph(c *Configs) (graph.Digraph, map[int]Task) {
+	g := graph.NewDigraph()
 	meta := make(map[int]Task, len(c.Tasks))
 	for _, task := range c.Tasks {
 		task.process(g.AddV, g.AddEdge)
 		meta[task.ID] = task
 	}
-	return c.Name, g, meta
+	return g, meta
 }
 
 func (d *dag) initPQ() {
@@ -93,8 +95,8 @@ func (d *dag) initPQ() {
 	for _, v := range vertices {
 		task := d.getTaskMeta(v)
 		prio := d.g.Outdegree(v)
-		task.SetPrio(prio)
-		task.SetIndex(-1)
+		task.SetHeapKey(prio)
+		task.SetHeapIndex(-1)
 		d.pq.Enqueue(task)
 	}
 }
@@ -110,7 +112,7 @@ func (d *dag) getTaskMeta(v int) Task {
 
 func (d *dag) hasCycle() bool {
 	log.Print("check for directed cycle")
-	c := ds.NewDirectedCycle(d.g)
+	c := graph.NewDirectedCycle(d.g)
 	if !c.IsDAG() {
 		log.Print("miniflow has cycle: ", c.GetCycle())
 	}
@@ -122,8 +124,9 @@ func (d *dag) hasTasks() bool { return d.g.Size() > 0 }
 func (d *dag) switchPipeOut() (Task, chan Task) {
 	var next Task
 	var pipeOut chan Task
-	if len(d.roots) > 0 && d.curFlow < d.maxFlow {
-		next = d.meta[d.roots[0]]
+	if !d.roots.Empty() && d.curFlow < d.maxFlow {
+		id, _ := d.roots.Get(0)
+		next = d.meta[id]
 		pipeOut = d.pipeOut
 	}
 	return next, pipeOut
@@ -131,23 +134,23 @@ func (d *dag) switchPipeOut() (Task, chan Task) {
 
 func (d *dag) getSources() {
 	for {
-		if d.pq.IsEmpty() || d.pq.GetMin().GetPrio() > 0 {
+		if d.pq.Empty() || d.pq.GetMin().HeapKey() > 0 {
 			break
 		}
 		root := d.pq.Dequeue()
-		d.roots = append(d.roots, root.GetID())
+		d.roots.Add(root.GetID())
 	}
 }
 
 func (d *dag) remove(id int) {
-	topo := ds.NewTopo(d.g, d.g.Parents, id)
+	topo := graph.NewTopo(d.g, d.g.Parents, id)
 	downstream := topo.GetTopoOrder()
 	log.Printf("task%d downstream: %v\n", id, downstream[1:])
 	postOrder := topo.GetPostOrder()
 	for _, id := range postOrder {
 		log.Printf("task%d removed\n", id)
 		task := d.meta[id]
-		d.pq.Remove(task.GetIndex())
+		d.pq.Remove(task.HeapIndex())
 		d.g.DelV(id)
 	}
 }
@@ -165,7 +168,7 @@ func (d *dag) relaxUpstream(upstreamID int) {
 	downstream := d.g.Parents(upstreamID)
 	for _, id := range downstream {
 		task := d.meta[id]
-		idx := task.GetIndex()
+		idx := task.HeapIndex()
 		prio := d.g.Outdegree(id) - 1
 		d.pq.Update(idx, prio)
 	}
