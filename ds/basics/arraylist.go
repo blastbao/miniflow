@@ -82,7 +82,7 @@ func (l *list) grow() {
 	if l.size+1 <= cap(l.items) {
 		return
 	}
-	l.resize(cap(l.items) * 2)
+	l.resize((cap(l.items) + 1) * 2)
 }
 
 func (l *list) resize(capacity int) {
