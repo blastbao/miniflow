@@ -48,6 +48,8 @@ func (it *Item) process(v addV, e addEdge) {
 	v(it.ID)
 	it.processUpstream(e)
 	it.processDownstream(e)
+	it.Upstream = nil
+	it.Downstream = nil
 }
 
 func (it *Item) processUpstream(e addEdge) {

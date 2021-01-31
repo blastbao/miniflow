@@ -28,9 +28,9 @@ type dag struct {
 
 // NewDAG create new dag
 func NewDAG(c *Configs, success <-chan int, fail <-chan int) DAG {
-	flowName, g, meta := initGraph(c)
+	g, meta := initGraph(c)
 	d := dag{
-		name:    flowName,
+		name:    c.Name,
 		g:       g,
 		pq:      tree.NewMinPQ(),
 		meta:    meta,
@@ -76,14 +76,14 @@ func (d *dag) Start() {
 	}
 }
 
-func initGraph(c *Configs) (string, graph.Digraph, map[int]Task) {
+func initGraph(c *Configs) (graph.Digraph, map[int]Task) {
 	g := graph.NewDigraph()
 	meta := make(map[int]Task, len(c.Tasks))
 	for _, task := range c.Tasks {
 		task.process(g.AddV, g.AddEdge)
 		meta[task.ID] = task
 	}
-	return c.Name, g, meta
+	return g, meta
 }
 
 func (d *dag) initPQ() {
