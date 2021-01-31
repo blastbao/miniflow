@@ -48,14 +48,9 @@ func (h *heap) Set(i, k int) {
 	if h.Empty() || !h.inRange(i) {
 		return
 	}
-	if i < h.size {
-		h.swap(i, h.size)
-		h.size--
-		h.sink(i)
-		h.size++
-	}
-	h.items[h.size].SetHeapKey(k)
-	h.swim(h.size)
+	h.items[i].SetHeapKey(k)
+	h.swim(i)
+	h.sink(i)
 }
 
 func (h *heap) Get(i int) HeapItem {
@@ -85,7 +80,7 @@ func (h *heap) grow() {
 	if h.size+1 < cap(h.items) {
 		return
 	}
-	h.resize(cap(h.items) * 2)
+	h.resize((cap(h.items) + 1) * 2)
 }
 
 func (h *heap) shrink() {
