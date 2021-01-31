@@ -20,10 +20,13 @@ type Heap interface {
 }
 
 // NewHeap createa a heap
-func NewHeap() Heap {
+func NewHeap(items []HeapItem) Heap {
 	h := heap{
-		items: make([]HeapItem, 3),
-		size:  0,
+		items: items,
+		size:  len(items) - 1,
+	}
+	for k := h.size / 2; k >= 1; k-- {
+		h.sink(k)
 	}
 	return &h
 }

@@ -32,7 +32,6 @@ func NewDAG(c *Configs, success <-chan int, fail <-chan int) DAG {
 	d := dag{
 		name:    c.Name,
 		g:       g,
-		pq:      tree.NewMinPQ(),
 		meta:    meta,
 		maxFlow: c.Parallel,
 		curFlow: 0,
@@ -92,13 +91,17 @@ func (d *dag) initPQ() {
 	if len(vertices) == 0 {
 		return
 	}
+	heapItems := make([]tree.HeapItem, len(vertices)+1)
+	i := 1
 	for _, v := range vertices {
 		task := d.getTaskMeta(v)
 		prio := d.g.Outdegree(v)
 		task.SetHeapKey(prio)
-		task.SetHeapIndex(-1)
-		d.pq.Enqueue(task)
+		heapItems[i] = task
+		task.SetHeapIndex(i)
+		i++
 	}
+	d.pq = tree.NewMinPQ(heapItems)
 }
 
 func (d *dag) getTaskMeta(v int) Task {

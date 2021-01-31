@@ -13,8 +13,8 @@ type MinPQ interface {
 type minPQ struct{ h Heap }
 
 // NewMinPQ creates a new min priority queue
-func NewMinPQ() MinPQ {
-	return &minPQ{h: NewHeap()}
+func NewMinPQ(items []HeapItem) MinPQ {
+	return &minPQ{h: NewHeap(items)}
 }
 
 func (m *minPQ) Empty() bool           { return m.h.Empty() }
