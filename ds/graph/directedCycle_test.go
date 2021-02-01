@@ -11,7 +11,7 @@ func TestDirectedCycle(t *testing.T) {
 	//to := []int{2, 3, 2, 0, 1, 0, 12, 9, 10, 11, 9, 12, 4, 3, 5, 8, 7, 4, 5, 4, 9, 6}
 	edgeSize := len(fm)
 
-	g := NewDigraph()
+	g := NewDigraph(2)
 	for i := 0; i < edgeSize; i++ {
 		g.AddEdge(fm[i], to[i])
 	}

@@ -13,9 +13,9 @@ type ArrayList interface {
 }
 
 // NewArrayList creates a new ArrayList
-func NewArrayList() ArrayList {
+func NewArrayList(size int) ArrayList {
 	return &list{
-		items: make([]int, 2),
+		items: make([]int, size),
 		size:  0,
 	}
 }

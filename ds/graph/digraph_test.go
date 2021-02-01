@@ -9,7 +9,7 @@ func TestDigraph(t *testing.T) {
 	to := []int{1, 6, 5, 4, 9, 4, 5, 0, 3, 7, 6, 10, 11, 12, 12}
 	//size := 13
 
-	g := NewDigraph()
+	g := NewDigraph(2)
 	want, actual := 0, g.Size()
 	if want != actual {
 		t.Fatalf("want: %d, actual: %d\n", want, actual)

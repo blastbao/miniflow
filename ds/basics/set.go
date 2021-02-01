@@ -18,7 +18,7 @@ type set struct {
 // NewSet creates a new set
 func NewSet() Set {
 	s := set{
-		items: NewArrayList(),
+		items: NewArrayList(0),
 		seen:  make(map[int]int),
 	}
 	return &s

@@ -2,7 +2,6 @@ package core
 
 import (
 	"log"
-	"miniflow/ds/basics"
 	"miniflow/ds/graph"
 	"miniflow/ds/tree"
 )
@@ -20,7 +19,7 @@ type dag struct {
 	meta    map[int]Task
 	maxFlow int
 	curFlow int
-	roots   basics.ArrayList
+	roots   *roots
 	pipeOut chan Task
 	success <-chan int
 	fail    <-chan int
@@ -35,7 +34,7 @@ func NewDAG(c *Configs, success <-chan int, fail <-chan int) DAG {
 		meta:    meta,
 		maxFlow: c.Parallel,
 		curFlow: 0,
-		roots:   basics.NewArrayList(),
+		roots:   newRoots(),
 		pipeOut: make(chan Task),
 		success: success,
 		fail:    fail,
@@ -69,14 +68,14 @@ func (d *dag) Start() {
 			d.getSources()
 
 		case pipeOut <- next:
-			d.roots.Del(0)
+			d.roots.del()
 			d.curFlow++
 		}
 	}
 }
 
 func initGraph(c *Configs) (graph.Digraph, map[int]Task) {
-	g := graph.NewDigraph()
+	g := graph.NewDigraph(len(c.Tasks))
 	meta := make(map[int]Task, len(c.Tasks))
 	for _, task := range c.Tasks {
 		task.process(g.AddV, g.AddEdge)
@@ -127,8 +126,8 @@ func (d *dag) hasTasks() bool { return d.g.Size() > 0 }
 func (d *dag) switchPipeOut() (Task, chan Task) {
 	var next Task
 	var pipeOut chan Task
-	if !d.roots.Empty() && d.curFlow < d.maxFlow {
-		id, _ := d.roots.Get(0)
+	if !d.roots.empty() && d.curFlow < d.maxFlow {
+		id, _ := d.roots.get()
 		next = d.meta[id]
 		pipeOut = d.pipeOut
 	}
@@ -141,7 +140,7 @@ func (d *dag) getSources() {
 			break
 		}
 		root := d.pq.Dequeue()
-		d.roots.Add(root.GetID())
+		d.roots.add(root.GetID())
 	}
 }
 

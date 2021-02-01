@@ -29,10 +29,10 @@ type digraph struct {
 }
 
 // NewDigraph create a new directed graph
-func NewDigraph() Digraph {
+func NewDigraph(size int) Digraph {
 	return &digraph{
-		vertices: basics.NewArrayList(),
-		adj:      make(adj),
+		vertices: basics.NewArrayList(size),
+		adj:      make(adj, size),
 	}
 }
 
